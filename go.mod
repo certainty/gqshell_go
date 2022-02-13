@@ -1,4 +1,4 @@
-module github.com/certainty/graphqshell
+module github.com/certainty/gqlshell_go
 
 go 1.17
 
@@ -17,3 +17,4 @@ require (
 	golang.org/x/sys v0.0.0-20210423082822-04245dca01da // indirect
 	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
 )
+

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/certainty/graphqshell/internal/application/tui"
+	"github.com/certainty/gqshell_go/internal/application/tui"
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"time"
