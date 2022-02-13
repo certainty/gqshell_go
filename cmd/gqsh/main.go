@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/certainty/gqshell_go/internal/application/tui"
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"time"
