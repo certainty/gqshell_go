@@ -2,6 +2,8 @@ package tui
 
 import (
 	"fmt"
+	"github.com/certainty/gqlshell_go/internal/application/tui/bubbles/selection"
+	"github.com/certainty/gqlshell_go/internal/application/tui/style"
 	tea "github.com/charmbracelet/bubbletea"
 	"log"
 	"time"
@@ -10,6 +12,11 @@ import (
 type model int
 
 type tickMsg time.Time
+
+// the main application state
+type Bubble struct {
+	selectedActivity *selection.Bubble
+}
 
 func Start() {
 	p := tea.NewProgram(model(5), tea.WithAltScreen())
