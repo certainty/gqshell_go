@@ -1,21 +1,12 @@
 package selection
 
 import (
-	"github.com/certainty/gqshell_go/internal/application/tui/style"
+	"github.com/certainty/gqshell_go/application/internal/tui/style"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/truncate"
 	"strings"
 )
-
-type HelpableBubble interface {
-	Help() []HelpEntry
-}
-
-type HelpEntry struct {
-	Key   string
-	Value string
-}
 
 type SelectedMsg struct {
 	Name  string
@@ -87,8 +78,8 @@ func (b *Bubble) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return b, tea.Batch(cmds...)
 }
 
-func (b *Bubble) Help() []HelpEntry {
-	return []HelpEntry{
+func (b *Bubble) Help() []gittypes.HelpEntry {
+	return []gittypes.HelpEntry{
 		{"↑/↓", "navigate"},
 	}
 }

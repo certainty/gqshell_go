@@ -1,7 +1,7 @@
 BINARY_NAME=gqsh
 CMD_PREFIX=cmd/gqsh
 
-build: ./target
+build: ./target dep
 	go build -o target/${BINARY_NAME} ${CMD_PREFIX}/main.go
 	GOARCH=amd64 GOOS=darwin go build -o target/${BINARY_NAME}-darwin ${CMD_PREFIX}/main.go
 	#GOARCH=amd64 GOOS=linux go build -o target/${BINARY_NAME}-linux ${CMD_PREFIX}/main.go
@@ -26,7 +26,7 @@ test_coverage:
 	go test ./... -coverprofile=coverage.out
 
 dep:
-	go mod download
+	go mod tidy
 
 vet:
 	go vet
