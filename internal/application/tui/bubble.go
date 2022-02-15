@@ -2,11 +2,14 @@ package tui
 
 import (
 	"fmt"
-	"github.com/certainty/gqshell_go/internal/application/tui/bubbles/selection"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"log"
 	"strings"
+
+	"github.com/certainty/gqshell_go/internal/application/tui/bubbles/selection"
+	"github.com/certainty/gqshell_go/internal/application/tui/style"
+	tea "github.com/charmbracelet/bubbletea"
+	lipgloss "github.com/charmbracelet/lipgloss"
+	"golang.org/x/term"
 )
 
 const (
@@ -46,12 +49,18 @@ type Bubble struct {
 }
 
 func NewBubble(cfg Config) *Bubble {
+	width, height, err := term.GetSize(0)
+	if err != nil {
+		log.Fatal(err)
+
+	}
+
 	b := &Bubble{
 		styles:      style.DefaultStyles(),
 		menuEntries: make([]MenuEntry, len(cfg.endpoints)),
 		boxes:       make([]tea.Model, 2),
-		height:      20,
-		width:       20,
+		height:      height,
+		width:       width,
 	}
 
 	for i, endpoint := range cfg.endpoints {
@@ -113,15 +122,15 @@ func (b *Bubble) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (b Bubble) headerView() string {
 	w := b.width - b.styles.App.GetHorizontalFrameSize()
-	name := ""
+	name := "GraphqShell"
 	return b.styles.Header.Copy().Width(w).Render(name)
 }
 
 func (b *Bubble) viewForBox(i int) string {
 	isActive := i == b.activeBox
+
 	switch box := b.boxes[i].(type) {
 	case *selection.Bubble:
-		// Menu
 		var s lipgloss.Style
 		s = b.styles.Menu
 		if isActive {
@@ -135,23 +144,27 @@ func (b *Bubble) viewForBox(i int) string {
 
 func (b Bubble) errorView() string {
 	s := b.styles
-	str := lipgloss.JoinHorizontal(
+
+	errorMessage := lipgloss.JoinHorizontal(
 		lipgloss.Top,
-		s.ErrorTitle.Render("Bummer"),
+		s.ErrorTitle.Render("Error"),
 		s.ErrorBody.Render(b.error),
 	)
+
 	h := b.height -
 		s.App.GetVerticalFrameSize() -
 		lipgloss.Height(b.headerView()) -
-		s.RepoBody.GetVerticalFrameSize() +
-		3 // TODO: this is repo header height -- get it dynamically
-	return s.Error.Copy().Height(h).Render(str)
+		lipgloss.Height(b.footerView()) -
+		s.EndpointBody.GetVerticalFrameSize() + 3
+
+	return s.Error.Copy().Height(h).Render(errorMessage)
 }
 
 func (b Bubble) View() string {
 	s := strings.Builder{}
 	s.WriteString(b.headerView())
 	s.WriteRune('\n')
+
 	switch b.state {
 	case loadedState:
 		lb := b.viewForBox(0)
@@ -160,8 +173,41 @@ func (b Bubble) View() string {
 	case errorState:
 		s.WriteString(b.errorView())
 	}
+
 	s.WriteRune('\n')
+	s.WriteString(b.footerView())
 	return b.styles.App.Render(s.String())
+}
+
+func (self Bubble) footerView() string {
+	renderedHelp := &strings.Builder{}
+	var helpEntries []selection.HelpEntry
+	if self.state != errorState {
+		helpEntries = []selection.HelpEntry{
+			{Key: "tab", Value: "section"},
+		}
+		if box, ok := self.boxes[self.activeBox].(selection.HelpableBubble); ok {
+			help := box.Help()
+			for _, helpEntry := range help {
+				helpEntries = append(helpEntries, helpEntry)
+			}
+		}
+	}
+
+	helpEntries = append(helpEntries, selection.HelpEntry{Key: "q", Value: "quit"})
+	for i, helpEntry := range helpEntries {
+		fmt.Fprint(renderedHelp, helpEntryRender(helpEntry, self.styles))
+		if i != len(helpEntries)-1 {
+			fmt.Fprint(renderedHelp, self.styles.HelpDivider)
+		}
+	}
+
+	help := renderedHelp.String()
+	section := self.styles.FooterSection.Render("TestSection")
+	gap := lipgloss.NewStyle().Width(self.width - lipgloss.Width(help) - lipgloss.Width(section) - self.styles.App.GetHorizontalFrameSize()).Render("")
+
+	footer := lipgloss.JoinHorizontal(lipgloss.Top, help, gap, section)
+	return self.styles.Footer.Render(footer)
 }
 
 func helpEntryRender(h selection.HelpEntry, s *style.Styles) string {
@@ -177,8 +223,9 @@ func Start() {
 		endpoints: endpoints,
 	}
 
-	p := tea.NewProgram(NewBubble(cfg), tea.WithAltScreen(), tea.WithoutCatchPanics())
-	if err := p.Start(); err != nil {
+	program := tea.NewProgram(NewBubble(cfg), tea.WithAltScreen(), tea.WithoutCatchPanics())
+
+	if err := program.Start(); err != nil {
 		log.Fatal(err)
 	}
 }

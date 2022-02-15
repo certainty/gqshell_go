@@ -1,7 +1,7 @@
 package style
 
 import (
-	"github.com/charmbracelet/lipgloss"
+	lipgloss "github.com/charmbracelet/lipgloss"
 )
 
 // XXX: For now, this is in its own package so that it can be shared between
@@ -20,51 +20,25 @@ type Styles struct {
 	MenuItem         lipgloss.Style
 	SelectedMenuItem lipgloss.Style
 
-	RepoTitleBorder lipgloss.Border
-	RepoNoteBorder  lipgloss.Border
-	RepoBodyBorder  lipgloss.Border
+	EndpointTitleBorder lipgloss.Border
+	EndpointNoteBorder  lipgloss.Border
+	EndpointBodyBorder  lipgloss.Border
 
-	RepoTitle    lipgloss.Style
-	RepoTitleBox lipgloss.Style
-	RepoNote     lipgloss.Style
-	RepoNoteBox  lipgloss.Style
-	RepoBody     lipgloss.Style
+	EndpointTitle    lipgloss.Style
+	EndpointTitleBox lipgloss.Style
+	EndpointNote     lipgloss.Style
+	EndpointNoteBox  lipgloss.Style
+	EndpointBody     lipgloss.Style
 
-	Footer      lipgloss.Style
-	Branch      lipgloss.Style
-	HelpKey     lipgloss.Style
-	HelpValue   lipgloss.Style
-	HelpDivider lipgloss.Style
+	Footer        lipgloss.Style
+	FooterSection lipgloss.Style
+	HelpKey       lipgloss.Style
+	HelpValue     lipgloss.Style
+	HelpDivider   lipgloss.Style
 
 	Error      lipgloss.Style
 	ErrorTitle lipgloss.Style
 	ErrorBody  lipgloss.Style
-
-	LogItemSelector   lipgloss.Style
-	LogItemActive     lipgloss.Style
-	LogItemInactive   lipgloss.Style
-	LogItemHash       lipgloss.Style
-	LogCommit         lipgloss.Style
-	LogCommitHash     lipgloss.Style
-	LogCommitAuthor   lipgloss.Style
-	LogCommitDate     lipgloss.Style
-	LogCommitBody     lipgloss.Style
-	LogCommitStatsAdd lipgloss.Style
-	LogCommitStatsDel lipgloss.Style
-
-	RefItemSelector lipgloss.Style
-	RefItemActive   lipgloss.Style
-	RefItemInactive lipgloss.Style
-	RefItemBranch   lipgloss.Style
-	RefItemTag      lipgloss.Style
-
-	TreeItemSelector lipgloss.Style
-	TreeItemActive   lipgloss.Style
-	TreeItemInactive lipgloss.Style
-	TreeFileDir      lipgloss.Style
-	TreeFileMode     lipgloss.Style
-	TreeFileSize     lipgloss.Style
-	TreeFileContent  lipgloss.Style
 }
 
 // DefaultStyles returns default styles for the TUI.
@@ -100,7 +74,7 @@ func DefaultStyles() *Styles {
 		Foreground(lipgloss.Color("207")).
 		PaddingLeft(1)
 
-	s.RepoTitleBorder = lipgloss.Border{
+	s.EndpointTitleBorder = lipgloss.Border{
 		Top:         "─",
 		Bottom:      "─",
 		Left:        "│",
@@ -111,7 +85,7 @@ func DefaultStyles() *Styles {
 		BottomRight: "┴",
 	}
 
-	s.RepoNoteBorder = lipgloss.Border{
+	s.EndpointNoteBorder = lipgloss.Border{
 		Top:         "─",
 		Bottom:      "─",
 		Left:        "│",
@@ -122,7 +96,7 @@ func DefaultStyles() *Styles {
 		BottomRight: "┤",
 	}
 
-	s.RepoBodyBorder = lipgloss.Border{
+	s.EndpointBodyBorder = lipgloss.Border{
 		Top:         "",
 		Bottom:      "─",
 		Left:        "│",
@@ -133,34 +107,34 @@ func DefaultStyles() *Styles {
 		BottomRight: "╯",
 	}
 
-	s.RepoTitle = lipgloss.NewStyle().
+	s.EndpointTitle = lipgloss.NewStyle().
 		Padding(0, 2)
 
-	s.RepoTitleBox = lipgloss.NewStyle().
-		BorderStyle(s.RepoTitleBorder).
+	s.EndpointTitleBox = lipgloss.NewStyle().
+		BorderStyle(s.EndpointTitleBorder).
 		BorderForeground(s.InactiveBorderColor)
 
-	s.RepoNote = lipgloss.NewStyle().
+	s.EndpointNote = lipgloss.NewStyle().
 		Padding(0, 2).
 		Foreground(lipgloss.Color("168"))
 
-	s.RepoNoteBox = lipgloss.NewStyle().
-		BorderStyle(s.RepoNoteBorder).
+	s.EndpointNoteBox = lipgloss.NewStyle().
+		BorderStyle(s.EndpointNoteBorder).
 		BorderForeground(s.InactiveBorderColor).
 		BorderTop(true).
 		BorderRight(true).
 		BorderBottom(true).
 		BorderLeft(false)
 
-	s.RepoBody = lipgloss.NewStyle().
-		BorderStyle(s.RepoBodyBorder).
+	s.EndpointBody = lipgloss.NewStyle().
+		BorderStyle(s.EndpointBodyBorder).
 		BorderForeground(s.InactiveBorderColor).
 		PaddingRight(1)
 
 	s.Footer = lipgloss.NewStyle().
 		MarginTop(1)
 
-	s.Branch = lipgloss.NewStyle().
+	s.FooterSection = lipgloss.NewStyle().
 		Foreground(lipgloss.Color("203")).
 		Background(lipgloss.Color("236")).
 		Padding(0, 1)
@@ -188,69 +162,6 @@ func DefaultStyles() *Styles {
 		Foreground(lipgloss.Color("252")).
 		MarginLeft(2).
 		Width(52) // for now
-
-	s.LogItemInactive = lipgloss.NewStyle().
-		MarginLeft(1)
-
-	s.LogItemSelector = s.LogItemInactive.Copy().
-		Width(1).
-		Foreground(lipgloss.Color("#B083EA"))
-
-	s.LogItemActive = s.LogItemInactive.Copy().
-		Bold(true)
-
-	s.LogItemHash = s.LogItemInactive.Copy().
-		Width(7).
-		Foreground(lipgloss.Color("#A3A322"))
-
-	s.LogCommit = lipgloss.NewStyle().
-		Margin(0, 2)
-
-	s.LogCommitHash = s.LogItemHash.Copy().
-		UnsetMarginLeft().
-		UnsetWidth().
-		Bold(true)
-
-	s.LogCommitBody = lipgloss.NewStyle().
-		MarginTop(1).
-		MarginLeft(2)
-
-	s.LogCommitStatsAdd = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00D787")).
-		Bold(true)
-
-	s.LogCommitStatsDel = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FD5B5B")).
-		Bold(true)
-
-	s.RefItemSelector = s.LogItemSelector.Copy()
-
-	s.RefItemActive = s.LogItemActive.Copy()
-
-	s.RefItemInactive = s.LogItemInactive.Copy()
-
-	s.RefItemBranch = lipgloss.NewStyle()
-
-	s.RefItemTag = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#A3A322"))
-
-	s.TreeItemSelector = s.LogItemSelector.Copy()
-
-	s.TreeItemActive = s.LogItemActive.Copy()
-
-	s.TreeItemInactive = s.LogItemInactive.Copy()
-
-	s.TreeFileDir = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00AAFF"))
-
-	s.TreeFileMode = s.LogItemInactive.Copy().
-		Width(10).
-		Foreground(lipgloss.Color("#777777"))
-
-	s.TreeFileSize = s.LogItemInactive.Copy().
-		Foreground(lipgloss.Color("252"))
-
-	s.TreeFileContent = lipgloss.NewStyle()
 
 	return s
 }

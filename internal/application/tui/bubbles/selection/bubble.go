@@ -3,7 +3,7 @@ package selection
 import (
 	"github.com/certainty/gqshell_go/internal/application/tui/style"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	lipgloss "github.com/charmbracelet/lipgloss"
 	"github.com/muesli/reflow/truncate"
 	"strings"
 )
