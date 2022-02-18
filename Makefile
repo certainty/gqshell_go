@@ -10,7 +10,7 @@ build: ./target dep
 ./target:
 	@mkdir -p ./target
 
-run: 
+run: build
 	./target/${BINARY_NAME}
 
 build_and_run: build run

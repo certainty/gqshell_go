@@ -32,13 +32,17 @@ type MenuEntry struct {
 	endpointName string
 }
 
+type Terminal struct {
+	width  int
+	height int
+}
+
 type appState int
 
 // the main application state
 type Bubble struct {
 	state         appState
-	width         int
-	height        int
+	term          Terminal
 	styles        *style.Styles
 	error         string
 	lastResize    tea.WindowSizeMsg
@@ -59,8 +63,7 @@ func NewBubble(cfg Config) *Bubble {
 		styles:      style.DefaultStyles(),
 		menuEntries: make([]MenuEntry, len(cfg.endpoints)),
 		boxes:       make([]tea.Model, 2),
-		height:      height,
-		width:       width,
+		term:        Terminal{height: height, width: width},
 	}
 
 	for i, endpoint := range cfg.endpoints {
@@ -92,17 +95,18 @@ func (b *Bubble) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case tea.WindowSizeMsg:
 		b.lastResize = msg
-		b.width = msg.Width
-		b.height = msg.Height
-		if b.state == loadedState {
-			for i, bx := range b.boxes {
-				m, cmd := bx.Update(msg)
-				b.boxes[i] = m
-				if cmd != nil {
-					cmds = append(cmds, cmd)
+		b.term.width = msg.Width
+		b.term.height = msg.Height
+		/*
+			if b.state == loadedState {
+				for i, bx := range b.boxes {
+					m, cmd := bx.Update(msg)
+					b.boxes[i] = m
+					if cmd != nil {
+						cmds = append(cmds, cmd)
+					}
 				}
-			}
-		}
+			}*/
 	case selection.SelectedMsg:
 		b.activeBox = 1
 	case selection.ActiveMsg:
@@ -110,18 +114,19 @@ func (b *Bubble) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return b.lastResize
 		})
 	}
-	if b.state == loadedState {
-		ab, cmd := b.boxes[b.activeBox].Update(msg)
-		b.boxes[b.activeBox] = ab
-		if cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-	}
+	/*
+		if b.state == loadedState {
+			ab, cmd := b.boxes[b.activeBox].Update(msg)
+			b.boxes[b.activeBox] = ab
+			if cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}*/
 	return b, tea.Batch(cmds...)
 }
 
 func (b Bubble) headerView() string {
-	w := b.width - b.styles.App.GetHorizontalFrameSize()
+	w := b.term.width - b.styles.App.GetHorizontalFrameSize()
 	name := "GraphqShell"
 	return b.styles.Header.Copy().Width(w).Render(name)
 }
@@ -151,7 +156,7 @@ func (b Bubble) errorView() string {
 		s.ErrorBody.Render(b.error),
 	)
 
-	h := b.height -
+	h := b.term.height -
 		s.App.GetVerticalFrameSize() -
 		lipgloss.Height(b.headerView()) -
 		lipgloss.Height(b.footerView()) -
@@ -162,21 +167,57 @@ func (b Bubble) errorView() string {
 
 func (b Bubble) View() string {
 	s := strings.Builder{}
-	s.WriteString(b.headerView())
-	s.WriteRune('\n')
+	//s.WriteString(b.headerView())
+	//s.WriteRune('\n')
 
-	switch b.state {
-	case loadedState:
-		lb := b.viewForBox(0)
-		rb := b.viewForBox(1)
-		s.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, lb, rb))
-	case errorState:
-		s.WriteString(b.errorView())
+	//styles := style.DefaultStyles()
+	header := lipgloss.NewStyle().Height(1).Padding(1).Align(lipgloss.Left).Border(lipgloss.NormalBorder(), false, false, true, false).Width(b.term.width - 2).Render("Header")
+	menu := b.endpointMenuView()
+	/*
+		content := lipgloss.NewStyle().
+			BorderStyle(styles.EndpointBodyBorder).
+			BorderForeground(styles.ActiveBorderColor).
+			Align(lipgloss.Left).
+			Height(10).
+			Padding(2).
+			Render("Content") */
+
+	footer := lipgloss.NewStyle().Padding(2).Align(lipgloss.Left).Render("Footer")
+	s.WriteString(lipgloss.JoinVertical(lipgloss.Top, header, menu, footer))
+
+	/*
+		switch b.state {
+		case loadedState:
+			lb := b.viewForBox(0)
+			rb := b.viewForBox(1)
+			s.WriteString(lipgloss.JoinHorizontal(lipgloss.Top, lb, rb))
+		case errorState:
+			s.WriteString(b.errorView())
+		}*/
+
+	//s.WriteRune('\n')
+	//s.WriteString(b.footerView())
+	return b.styles.App.Render(s.String())
+}
+
+func (self Bubble) endpointMenuView() string {
+	s := self.styles
+	endpoints := make([]string, len(self.menuEntries))
+
+	for i, endpoint := range self.menuEntries {
+		entryStyle := s.MenuItem.Copy()
+
+		if self.activeEndoint == i {
+			entryStyle = s.SelectedMenuItem.Copy()
+		}
+
+		endpoints[i] = entryStyle.Render(endpoint.endpointName)
 	}
 
-	s.WriteRune('\n')
-	s.WriteString(b.footerView())
-	return b.styles.App.Render(s.String())
+	return lipgloss.JoinVertical(
+		lipgloss.Top,
+		endpoints...,
+	)
 }
 
 func (self Bubble) footerView() string {
@@ -204,7 +245,7 @@ func (self Bubble) footerView() string {
 
 	help := renderedHelp.String()
 	section := self.styles.FooterSection.Render("TestSection")
-	gap := lipgloss.NewStyle().Width(self.width - lipgloss.Width(help) - lipgloss.Width(section) - self.styles.App.GetHorizontalFrameSize()).Render("")
+	gap := lipgloss.NewStyle().Width(self.term.width - lipgloss.Width(help) - lipgloss.Width(section) - self.styles.App.GetHorizontalFrameSize()).Render("")
 
 	footer := lipgloss.JoinHorizontal(lipgloss.Top, help, gap, section)
 	return self.styles.Footer.Render(footer)
